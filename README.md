@@ -82,6 +82,25 @@ The reference implementation provides the following purposes:
 2) Providing a framework for evaluating the above objective criteria
 3) Providing an implementation to load and save Open-SDF models
 
+### Code of Shapes and Operators
+
+We implement the functions in C/C++. TODO...
+
+### Measurement Framework
+
+Since the most likey implementation is on a GPU, we choose our evaluation framework accordingly. Candidates are various APIs and various vendors. Initially we choose CUDA since we can use C++ interchangably on the GPU compute and the CPU to evaluate the above criteria. It also provides ISA dissambly as well as static analysis of register pressure. We can later extend this to AMD, Intel, Apple, etc.
+
+TODO: write the framework
+
+### File Format
+
+TODO: probably JSON with the option to use binary JSON formats.
+
+### Dependencies
+ * GLM
+ * Premake 5
+ * CUDA
+
 ## Contributing
 
 We need to define some framework of managing contributions, including clearing code from potential IP rettrictions. TODO: define CLA, licenses etc.
