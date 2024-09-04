@@ -1,7 +1,8 @@
 # Open-SDF
 
-## Purpose 
-To define a standardized file format for exchanging 3D models represented as signed distance functions, facilitating interoperability between different software tools while accounting for varying computational capabilities and specific use cases.
+> WORK IN PROGRESS
+
+Open-SDF is an effort to define a standardized exchange format for 3D models represented as signed distance functions, facilitating interoperability between different software tools while accounting for varying computational capabilities and specific use cases.
 
 ## Motivation
 Modeling 3D objects with implicit surfaces and more specifically Signed Distance Functions has been around for decades. In recent years, it has become increasingly practical due to the ubiquity of massively parallel hardware, the GPU. Today, various commercial products exist for 3D modeling, graphics design and games. 
@@ -37,10 +38,34 @@ Vendor extensions. Instead we encourage a progression of implementation complexi
 We intend to rank the list of functions and operators by the following criteria and categorize them into meaningful tiers. This should optimize for implementation simplicity, maximize expressiveness in the lower tiers as well as provide a linear path for an implementation to increase support.
 
 ### Objective Criteria
-* Runtime / ALU complexity
-* Register pressure
-* Bandwidth pressure / number of parameters
-Quality of the resulting field. Baseline is a pure L2-norm signed distance function that is Lipschitz-continuous, e.g. the length of the gradient is 1 for the whole domain.
+#### Runtime complexity
+
+
+#### Register pressure
+Since functions typically used in inner loops of all sorts of GPU algorithms (e.g. ray marching loop, some meshing algorithm, eval to 3D texture, etc.), the amount of state the calculation of a certain shape needs is relevant. GPU occupancy cliffs are a major source of performance loss. We can statically analyse our shape functions with CUDA as follows:
+
+```
+$ cuobjdump.exe --dump-resource-usage Build/Measure/Dev-Run/eval_tier0.cubin
+
+Resource usage:
+ Common:
+  GLOBAL:0
+ Function eval_sdBox:
+  REG:15 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:376 TEXTURE:0 SURFACE:0 SAMPLER:0
+ Function eval_sdSphere:
+  REG:12 STACK:0 SHARED:0 LOCAL:0 CONSTANT[0]:376 TEXTURE:0 SURFACE:0 SAMPLER:0
+```
+> NOTE: The number of registers used per shape function will vary between various ISAs. This should be okay when evaluating the relative register usage between shapes.
+
+#### Memory pressure
+While GPUs have instruction sets that can carry constant values in the instruction stream, most use cases for evaluating shapes would load the shape paramters from memory (either from a texture sampler or from a buffer). The number of parameters (and size) a shape requires is a good static estimator for how much the evaluation is bound by memory bandwidth and latency.
+
+> NOTE: we can measure by optimized shape parameters, using `float16` or `UNORM8` where sufficient. Not all parameters of all shapes have to be `float32`.
+
+#### Field Quality
+Quality of the resulting field with a baseline being a pure L2-norm signed distance function that is Lipschitz-continuous, e.g. the length of the gradient is 1 for the whole domain.
+
+> NOTE: this is not statically measurable.
 
 ### Non-Objective Criteria
 * Commonness of shapes vs specificity of shapes. E.g.: A sphere is more commonly used in modeling than a star with 5 vertices.
@@ -53,7 +78,7 @@ Shapes defined by known Signed Distance Functions exhibit a certain degree of re
 
 ### Shapes
 
-| Tier  | Shape  | Runtime Complexity  | Register Pressure  | Bandwidth Pressure  | Field Quality | Commonness|
+| Tier  | Shape  | Runtime Complexity  | Register Pressure | Bandwidth Pressure | Field Quality | Commonness|
 |---|---|---|---|---|---|---|
 |   |   |   |   |   |   |   |
 |   |   |   |   |   |   |   |

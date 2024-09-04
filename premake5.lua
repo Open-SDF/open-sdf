@@ -53,13 +53,13 @@ project "Measure"
     kind "ConsoleApp"
     targetname "measure"
 
-
     files {
         "Source/Measure/**.cpp",
         "Source/Measure/**.c",
         "Source/Measure/**.hpp",
         "Source/Measure/**.h",
         "Source/Measure/**.inl",
+        "Source/Measure/**.cu"
     }
 
     includedirs {
@@ -70,4 +70,10 @@ project "Measure"
     libdirs { 
     }
     
-    
+    local NVCC = '"nvcc.exe"'
+        
+    filter { "files:**.cu" }
+        buildmessage 'Compiling %{file.name} with NVCC'
+        FLAGS = "--cubin -arch=native -O3 -use_fast_math -I../Source/Functions -I../External/glm --ptxas-options --verbose"
+        buildcommands {NVCC .. " " .. FLAGS ..' "%{file.relpath}" -o "%{cfg.buildtarget.directory}/%{file.basename}.cubin"'}
+        buildoutputs { "%{cfg.buildtarget.directory}/%{file.basename}.cubin" }
